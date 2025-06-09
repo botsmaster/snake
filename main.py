@@ -31,10 +31,12 @@ arena = Entity(
 # UI Elements
 score_text = Text("Score: 0", position=(-0.8, 0.45), scale=2, color=color.white)
 size_text = Text("Size: 1", position=(-0.8, 0.4), scale=2, color=color.white)
-leaderboard_text = Text("Leaderboard:", position=(0.5, 0.45), scale=1.5, color=color.white)
+leaderboard_text = Text("Leaderboard:", position=(0.55, 0.45), scale=1.5, color=color.white)
+game_over_text = Text("", position=(0,0), scale=3, color=color.red, origin=(0,0), enabled=False)
 
 # Local snake and camera controller
 def restart_game():
+    game_over_text.enabled = False
     for cube in collectible_cubes[:]:
         destroy(cube)
         collectible_cubes.remove(cube)
@@ -130,6 +132,9 @@ def update():
     if local_snake.alive:
         local_snake.update()
         local_snake.check_collision(ws_client.websocket)
+    else:
+        game_over_text.text = "GAME OVER"
+        game_over_text.enabled = True
     for snake in other_players.values():
         snake.update()
     all_snakes = [local_snake] + list(other_players.values())
@@ -138,6 +143,14 @@ def update():
     camera_controller.update()
     score_text.text = f"Score: {local_snake.score}"
     size_text.text = f"Size: {len(local_snake.segments)}"
+    # Leaderboard
+    players = [(local_snake.player_id, local_snake.score)] + [
+        (pid, s.score) for pid, s in other_players.items()
+    ]
+    players.sort(key=lambda x: x[1], reverse=True)
+    leaderboard_text.text = "Leaderboard:\n" + "\n".join(
+        f"{pid}: {score}" for pid, score in players
+    )
 
 # Start websocket in separate thread
 

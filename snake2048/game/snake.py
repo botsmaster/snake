@@ -125,7 +125,10 @@ class Snake:
         if self.player_id == "local_player":
             for cube in collectible_cubes[:]:
                 if distance(self.head.position, cube.position) < 1.0:
-                    self.collect_cube(cube, websocket_client)
+                    if cube.value <= self.head.value:
+                        self.collect_cube(cube, websocket_client)
+                    else:
+                        self.die(websocket_client)
                     break
 
 def spawn_collectible_cube(position=None, value=None, cube_id=None):
