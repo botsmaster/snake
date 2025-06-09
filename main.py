@@ -131,7 +131,7 @@ setup_game()
 def update():
     if local_snake.alive:
         local_snake.update()
-        local_snake.check_collision(ws_client.websocket)
+        local_snake.check_collision(ws_client)
     else:
         game_over_text.text = "GAME OVER"
         game_over_text.enabled = True
@@ -139,7 +139,7 @@ def update():
         snake.update()
     all_snakes = [local_snake] + list(other_players.values())
     for snake in all_snakes:
-        snake.check_collision_with_other_snakes(all_snakes, ws_client.websocket)
+        snake.check_collision_with_other_snakes(all_snakes, ws_client)
     camera_controller.update()
     score_text.text = f"Score: {local_snake.score}"
     size_text.text = f"Size: {len(local_snake.segments)}"

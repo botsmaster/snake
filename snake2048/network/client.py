@@ -11,6 +11,7 @@ class WebSocketClient:
         self.reconnect_delay = 5
         self.receive_callback = None
         self.running = True
+        self.loop = None
 
     def set_receive_callback(self, callback):
         self.receive_callback = callback
@@ -38,4 +39,10 @@ class WebSocketClient:
             await self.websocket.send(json.dumps(data))
 
     async def run(self, send_state_coro):
+        self.loop = asyncio.get_running_loop()
         await asyncio.gather(self.connect(), send_state_coro)
+
+    def send_threadsafe(self, data: dict):
+        """Send data to the server from outside the websocket thread."""
+        if self.loop and self.websocket and self.websocket.open:
+            asyncio.run_coroutine_threadsafe(self.send(data), self.loop)

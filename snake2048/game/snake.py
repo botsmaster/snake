@@ -1,6 +1,4 @@
 from ursina import Vec3, destroy, distance, held_keys, color, time, invoke
-import asyncio
-import json
 import random
 from .entities import SnakeSegment, CollectibleCube
 
@@ -80,12 +78,8 @@ class Snake:
             self.grow(cube.value)
             collectible_cubes.remove(cube)
             destroy(cube)
-            if websocket_client and websocket_client.open:
-                asyncio.create_task(
-                    websocket_client.send(
-                        json.dumps({"type": "collect_cube", "cube_id": cube.cube_id})
-                    )
-                )
+            if websocket_client and websocket_client.websocket and websocket_client.websocket.open:
+                websocket_client.send_threadsafe({"type": "collect_cube", "cube_id": cube.cube_id})
         else:
             print("Cannot collect cube: value too high!")
 
@@ -105,10 +99,8 @@ class Snake:
 
     def die(self, websocket_client=None):
         self.alive = False
-        if websocket_client and websocket_client.open:
-            asyncio.create_task(
-                websocket_client.send(json.dumps({"type": "player_death", "id": self.player_id}))
-            )
+        if websocket_client and websocket_client.websocket and websocket_client.websocket.open:
+            websocket_client.send_threadsafe({"type": "player_death", "id": self.player_id})
         for segment in self.segments:
             segment.visible = False
         if self.player_id == "local_player":
